@@ -27,9 +27,9 @@ coinbase:
   api:
     base-url: https://api-public.sandbox.exchange.coinbase.com
     buy-threshold: 5.00
-    key: c8e3dd047d8ba2b69d95c08855a6fa1c
-    secret: 0zNKGVp6xuBt+Rc7i/DiwBGO2zENc6Tv4L3x6aMT/0zGwxnKuvqg2s59bJtlgRk5PxJmbKYEY6zu4WCJk75LRw==
-    passphrase: bu6rg4hlfol6
+    key: 9530995e3dd6efc84b3ebf292d1b4c4a
+    secret: bALCwmqaWEkP8fKG0EkbTHu6NBs6AHYbuHrJ8na0gJgfKlxkIyjtrtoCNsTRLXVIexN0g/mDsaohUeyW5ReaKg==
+    passphrase: 3d8i245ycg8q
 
 stacker:
   delay:
