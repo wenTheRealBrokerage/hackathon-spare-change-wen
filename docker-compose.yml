@@ -1,37 +1,76 @@
 version: '3.8'
 
 services:
-  spare-change-api:
+  # Backend Spring Boot API
+  backend:
     build:
       context: ./spare-change/spare-change-api
       dockerfile: Dockerfile
     container_name: spare-change-api
+    environment:
+      - PORT=8080
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:testdb
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.h2.Driver
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.H2Dialect
+      - SPRING_H2_CONSOLE_ENABLED=true
+      - SPRING_H2_CONSOLE_PATH=/h2-console
+      # CORS configuration to fix 405 errors
+      - SPRING_WEB_CORS_ALLOWED_ORIGINS=*
+      - SPRING_WEB_CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+      - SPRING_WEB_CORS_ALLOWED_HEADERS=*
+      - SPRING_WEB_CORS_ALLOW_CREDENTIALS=true
     ports:
       - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - JAVA_OPTS=-Xmx512m -Xms256m
-    networks:
-      - app-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
+  # Frontend React App with Nginx
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: frontend
+    container_name: spare-change-frontend
+    environment:
+      - PORT=80
+      - REACT_APP_API_URL=http://backend:8080
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Combined deployment (for Render)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spare-change-app
+    environment:
+      - PORT=80
+      - SPRING_PROFILES_ACTIVE=production
+      # Add your production database configuration here
+      - SPRING_DATASOURCE_URL=${DATABASE_URL}
+      - SPRING_WEB_CORS_ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+      - SPRING_WEB_CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH
+      - SPRING_WEB_CORS_ALLOWED_HEADERS=*
+      - SPRING_WEB_CORS_ALLOW_CREDENTIALS=true
     ports:
       - "80:80"
-    depends_on:
-      - spare-change-api
-    networks:
-      - app-network
+    profiles:
+      - production
 
-networks:
-  app-network:
-    driver: bridge
+# Development volumes for hot reloading (optional)
+volumes:
+  backend-data:
+  frontend-data:

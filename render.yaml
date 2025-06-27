@@ -14,3 +14,28 @@ services:
         value: 0zNKGVp6xuBt+Rc7i/DiwBGO2zENc6Tv4L3x6aMT/0zGwxnKuvqg2s59bJtlgRk5PxJmbKYEY6zu4WCJk75LRw==
       - key: COINBASE_API_PASSPHRASE
         value: bu6rg4hlfol6
+      # CORS configuration to fix 405 errors
+      - key: SPRING_WEB_CORS_ALLOWED_ORIGINS
+        value: "*"
+      - key: SPRING_WEB_CORS_ALLOWED_METHODS
+        value: GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD
+      - key: SPRING_WEB_CORS_ALLOWED_HEADERS
+        value: "*"
+      - key: SPRING_WEB_CORS_ALLOW_CREDENTIALS
+        value: "true"
+      # Database configuration (using H2 for now)
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:h2:mem:testdb
+      - key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+        value: org.h2.Driver
+      - key: SPRING_DATASOURCE_USERNAME
+        value: sa
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: ""
+      - key: SPRING_JPA_DATABASE_PLATFORM
+        value: org.hibernate.dialect.H2Dialect
+      # Logging for debugging
+      - key: LOG_LEVEL
+        value: INFO
+      - key: SPRING_LOG_LEVEL
+        value: DEBUG
