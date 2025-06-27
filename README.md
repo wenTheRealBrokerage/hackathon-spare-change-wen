@@ -7,6 +7,20 @@
 ![React](https://img.shields.io/badge/React-18-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
+## 🎮 Quick Demo
+
+Want to see Spare Change in action? Follow these simple steps:
+
+1. **Start the application** (see Quick Start below)
+2. **Click "Random Transaction"** multiple times to add sample transactions
+   - Each transaction will be rounded up to the nearest dollar
+   - Watch the spare change accumulate in the transaction list
+3. **Monitor the progress bar** as it fills toward your threshold (default: $5.00)
+4. **Once threshold is reached**, click the **"Check Threshold"** button
+5. **Check the "Orders" tab** to see your automatic cryptocurrency purchase!
+
+The system will automatically create a buy order for Bitcoin or Ethereum (depending on your selection) using the accumulated spare change.
+
 ## 🚀 Overview
 
 Spare Change is a modern micro-investment application that automatically rounds up your transactions to the nearest dollar and invests the accumulated spare change in cryptocurrency (Bitcoin or Ethereum) through Coinbase. Perfect for building wealth through small, automatic investments.
@@ -130,20 +144,6 @@ cd frontend
 npm run test
 ```
 
-## 🎮 Quick Demo
-
-Want to see Spare Change in action? Follow these simple steps:
-
-1. **Start the application** (see Quick Start above)
-2. **Click "Random Transaction"** multiple times to add sample transactions
-   - Each transaction will be rounded up to the nearest dollar
-   - Watch the spare change accumulate in the transaction list
-3. **Monitor the progress bar** as it fills toward your threshold (default: $5.00)
-4. **Once threshold is reached**, click the **"Check Threshold"** button
-5. **Check the "Orders" tab** to see your automatic cryptocurrency purchase!
-
-The system will automatically create a buy order for Bitcoin or Ethereum (depending on your selection) using the accumulated spare change.
-
 ## 📸 Features Overview
 
 ### Dashboard Components
@@ -176,10 +176,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Built with [Spring Boot](https://spring.io/projects/spring-boot)
 - UI powered by [Mantine](https://mantine.dev/)
 - Cryptocurrency trading via [Coinbase](https://www.coinbase.com/)
-
-## 📧 Contact
-
-Questions? Issues? Feel free to [open an issue](https://github.com/yourusername/spare-change/issues) or reach out!
 
 ---
 
