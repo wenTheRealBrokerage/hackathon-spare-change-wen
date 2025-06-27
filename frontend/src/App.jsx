@@ -4,12 +4,14 @@ import { IconCoin, IconList } from '@tabler/icons-react'
 import TransactionTab from './components/TransactionTab'
 import CryptoOrdersTab from './components/CryptoOrdersTab'
 import FuturisticHeader from './components/FuturisticHeader'
+import OnboardingTutorial from './components/OnboardingTutorial'
 
 function App() {
   const iconStyle = { width: rem(16), height: rem(16) }
 
   return (
     <Box style={{ minHeight: '100vh' }}>
+      <OnboardingTutorial />
       <FuturisticHeader />
       <Container size="xl" pb="xl">
         <Tabs 
