@@ -14,7 +14,7 @@ export const useTransactionStream = () => {
   })
 
   useEffect(() => {
-    const eventSource = new EventSource('/tx/stream')
+    const eventSource = new EventSource('/api/tx/stream')
     
     eventSource.onopen = () => {
       setIsConnected(true)
