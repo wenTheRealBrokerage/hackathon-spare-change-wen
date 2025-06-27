@@ -1,6 +1,6 @@
 package com.example.sparechange.controller;
 
-import com.example.sparechange.service.ThresholdService;
+import com.example.sparechange.service.IThresholdService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,7 +18,7 @@ class CronControllerTest {
     private MockMvc mockMvc;
     
     @MockBean
-    private ThresholdService thresholdService;
+    private IThresholdService thresholdService;
     
     @Test
     void triggerThresholdCheck_WhenExecuted_ShouldReturnSuccess() throws Exception {

@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Button, Stack, Group, Paper, Text, Badge, Table, ActionIcon, Title, NumberInput, Card, TextInput, Modal, Box, Grid, Progress } from '@mantine/core'
+import { Button, Stack, Group, Paper, Text, Badge, Table, ActionIcon, Title, NumberInput, Card, TextInput, Modal, Box, Grid, Progress, Tooltip, Select } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { IconPlus, IconMinus, IconEdit, IconShoppingCart, IconNetwork, IconRocket, IconBolt, IconWallet } from '@tabler/icons-react'
+import { IconPlus, IconMinus, IconEdit, IconShoppingCart, IconNetwork, IconRocket, IconBolt, IconWallet, IconCurrencyBitcoin, IconCurrencyEthereum } from '@tabler/icons-react'
 import { api } from '../utils/api'
 import { useTransactionStream } from '../hooks/useTransactionStream'
 
@@ -26,6 +26,12 @@ function TransactionTab() {
   const { data: thresholdData, isLoading: thresholdLoading } = useQuery({
     queryKey: ['threshold'],
     queryFn: api.getThreshold,
+    refetchInterval: 10000,
+  })
+  
+  const { data: productData, isLoading: productLoading } = useQuery({
+    queryKey: ['product'],
+    queryFn: api.getProduct,
     refetchInterval: 10000,
   })
 
@@ -127,6 +133,25 @@ function TransactionTab() {
       })
     },
   })
+  
+  const updateProductMutation = useMutation({
+    mutationFn: api.updateProduct,
+    onSuccess: (data) => {
+      notifications.show({
+        title: 'Cryptocurrency Updated',
+        message: `Changed from ${data.previousProduct} to ${data.newProduct}`,
+        color: 'green',
+      })
+      queryClient.invalidateQueries({ queryKey: ['product'] })
+    },
+    onError: () => {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to update cryptocurrency',
+        color: 'red',
+      })
+    },
+  })
 
   const displayedTransactions = transactions.slice(0, pageSize)
   
@@ -154,37 +179,48 @@ function TransactionTab() {
       {/* Stats Cards */}
       <Grid>
         <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-          <Card 
-            p="lg"
-            style={{
-              background: 'linear-gradient(135deg, rgba(14, 196, 255, 0.1) 0%, rgba(106, 27, 255, 0.1) 100%)',
-              border: '1px solid rgba(14, 196, 255, 0.3)',
-              transition: 'all 0.3s ease',
-            }}
+          <Tooltip 
+            label={`Spare change is calculated by rounding up each transaction to the nearest dollar. When the total reaches your threshold, ${productData?.currentProduct === 'ETH-USD' ? 'Ethereum' : 'Bitcoin'} is automatically purchased.`}
+            position="bottom"
+            multiline
+            width={220}
+            withArrow
           >
-            <Group position="apart">
-              <div>
-                <Text size="xs" transform="uppercase" weight={500} color="dimmed">
-                  Total Spare Change
-                </Text>
-                <Text size="xl" weight={700} style={{ textShadow: '0 0 10px rgba(14, 196, 255, 0.8)' }}>
-                  ${totalSpareChange.toFixed(2)}
-                </Text>
-              </div>
-              <IconWallet size={32} style={{ color: '#0EC4FF', opacity: 0.8 }} />
-            </Group>
-            <Progress 
-              value={(totalSpareChange / (thresholdData?.currentThreshold || 5)) * 100} 
-              color="neon" 
-              size="xs" 
-              mt="sm"
-              styles={{
-                bar: {
-                  backgroundImage: 'linear-gradient(90deg, #0EC4FF 0%, #6A1BFF 100%)',
-                }
+            <Card 
+              p="lg"
+              style={{
+                background: 'linear-gradient(135deg, rgba(14, 196, 255, 0.1) 0%, rgba(106, 27, 255, 0.1) 100%)',
+                border: '1px solid rgba(14, 196, 255, 0.3)',
+                transition: 'all 0.3s ease',
+                cursor: 'help',
               }}
-            />
-          </Card>
+            >
+              <Group position="apart">
+                <div>
+                  <Text size="xs" transform="uppercase" weight={500} color="dimmed">
+                    Total Spare Change
+                  </Text>
+                  <Text size="xl" weight={700} style={{ textShadow: '0 0 10px rgba(14, 196, 255, 0.8)' }}>
+                    ${totalSpareChange.toFixed(2)}
+                  </Text>
+                </div>
+                <IconWallet size={32} style={{ color: '#0EC4FF', opacity: 0.8 }} />
+              </Group>
+              <Tooltip label={`${((totalSpareChange / (thresholdData?.currentThreshold || 5)) * 100).toFixed(1)}% of threshold`} position="top" withArrow>
+                <Progress 
+                  value={(totalSpareChange / (thresholdData?.currentThreshold || 5)) * 100} 
+                  color="neon" 
+                  size="xs" 
+                  mt="sm"
+                  styles={{
+                    bar: {
+                      backgroundImage: 'linear-gradient(90deg, #0EC4FF 0%, #6A1BFF 100%)',
+                    }
+                  }}
+                />
+              </Tooltip>
+            </Card>
+          </Tooltip>
         </Grid.Col>
         
         <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
@@ -204,57 +240,71 @@ function TransactionTab() {
         </Grid.Col>
         
         <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-          <Card p="lg" style={cardStyle}>
-            <Group position="apart">
-              <div>
-                <Text size="xs" transform="uppercase" weight={500} color="dimmed">
-                  Threshold
-                </Text>
-                {editingThreshold ? (
-                  <Group gap="xs">
-                    <NumberInput
-                      value={newThreshold}
-                      onChange={setNewThreshold}
-                      min={0.01}
-                      max={1000}
-                      step={0.5}
-                      precision={2}
-                      prefix="$"
-                      size="xs"
-                      style={{ width: 80 }}
-                    />
-                    <ActionIcon size="sm" color="green" onClick={() => updateThresholdMutation.mutate(newThreshold)}>
-                      ✓
-                    </ActionIcon>
-                    <ActionIcon size="sm" color="red" onClick={() => {
-                      setEditingThreshold(false)
-                      setNewThreshold(thresholdData?.currentThreshold || 5)
-                    }}>
-                      ✕
-                    </ActionIcon>
-                  </Group>
-                ) : (
-                  <Group gap="xs" align="center">
-                    <Text size="xl" weight={700}>
-                      ${thresholdData?.currentThreshold || '5.00'}
-                    </Text>
-                    <ActionIcon 
-                      size="sm" 
-                      variant="subtle"
-                      color="neon"
-                      onClick={() => {
-                        setEditingThreshold(true)
-                        setNewThreshold(thresholdData?.currentThreshold || 5)
-                      }}
-                    >
-                      <IconEdit size={14} />
-                    </ActionIcon>
-                  </Group>
-                )}
-              </div>
-              <IconRocket size={32} style={{ color: '#0EC4FF', opacity: 0.8 }} />
-            </Group>
-          </Card>
+          <Tooltip 
+            label="When spare change total reaches this amount, Bitcoin is automatically purchased. Click the edit icon to change."
+            position="bottom"
+            multiline
+            width={200}
+            withArrow
+          >
+            <Card p="lg" style={{ ...cardStyle, cursor: 'help' }}>
+              <Group position="apart">
+                <div>
+                  <Text size="xs" transform="uppercase" weight={500} color="dimmed">
+                    Threshold
+                  </Text>
+                  {editingThreshold ? (
+                    <Group gap="xs">
+                      <NumberInput
+                        value={newThreshold}
+                        onChange={setNewThreshold}
+                        min={0.01}
+                        max={1000}
+                        step={0.5}
+                        precision={2}
+                        prefix="$"
+                        size="xs"
+                        style={{ width: 80 }}
+                      />
+                      <Tooltip label="Save" position="top" withArrow>
+                        <ActionIcon size="sm" color="green" onClick={() => updateThresholdMutation.mutate(newThreshold)}>
+                          ✓
+                        </ActionIcon>
+                      </Tooltip>
+                      <Tooltip label="Cancel" position="top" withArrow>
+                        <ActionIcon size="sm" color="red" onClick={() => {
+                          setEditingThreshold(false)
+                          setNewThreshold(thresholdData?.currentThreshold || 5)
+                        }}>
+                          ✕
+                        </ActionIcon>
+                      </Tooltip>
+                    </Group>
+                  ) : (
+                    <Group gap="xs" align="center">
+                      <Text size="xl" weight={700}>
+                        ${thresholdData?.currentThreshold || '5.00'}
+                      </Text>
+                      <Tooltip label="Edit threshold" position="right" withArrow>
+                        <ActionIcon 
+                          size="sm" 
+                          variant="subtle"
+                          color="neon"
+                          onClick={() => {
+                            setEditingThreshold(true)
+                            setNewThreshold(thresholdData?.currentThreshold || 5)
+                          }}
+                        >
+                          <IconEdit size={14} />
+                        </ActionIcon>
+                      </Tooltip>
+                    </Group>
+                  )}
+                </div>
+                <IconRocket size={32} style={{ color: '#0EC4FF', opacity: 0.8 }} />
+              </Group>
+            </Card>
+          </Tooltip>
         </Grid.Col>
         
         <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
@@ -281,6 +331,54 @@ function TransactionTab() {
               <IconNetwork size={32} style={{ color: isConnected ? '#4ADE80' : '#EF4444', opacity: 0.8 }} />
             </Group>
           </Card>
+        </Grid.Col>
+        
+        <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <Tooltip 
+            label="Choose which cryptocurrency to purchase with your spare change"
+            position="bottom"
+            multiline
+            width={200}
+            withArrow
+          >
+            <Card p="lg" style={{ ...cardStyle, cursor: 'help' }}>
+              <Group position="apart">
+                <div style={{ flex: 1 }}>
+                  <Text size="xs" transform="uppercase" weight={500} color="dimmed" mb="xs">
+                    Cryptocurrency
+                  </Text>
+                  <Select
+                    data={productData?.availableProducts ? 
+                      Object.entries(productData.availableProducts).map(([value, label]) => ({
+                        value,
+                        label,
+                        icon: value === 'BTC-USD' ? '₿' : 'Ξ'
+                      })) : []
+                    }
+                    value={productData?.currentProduct || 'BTC-USD'}
+                    onChange={(value) => updateProductMutation.mutate(value)}
+                    disabled={updateProductMutation.isPending || productLoading}
+                    size="sm"
+                    styles={{
+                      input: {
+                        backgroundColor: 'rgba(14, 196, 255, 0.05)',
+                        border: '1px solid rgba(14, 196, 255, 0.3)',
+                        fontWeight: 600,
+                        '&:focus': {
+                          borderColor: '#0EC4FF',
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                {productData?.currentProduct === 'BTC-USD' ? (
+                  <IconCurrencyBitcoin size={32} style={{ color: '#F7931A', opacity: 0.8 }} />
+                ) : (
+                  <IconCurrencyEthereum size={32} style={{ color: '#627EEA', opacity: 0.8 }} />
+                )}
+              </Group>
+            </Card>
+          </Tooltip>
         </Grid.Col>
       </Grid>
 
@@ -324,25 +422,29 @@ function TransactionTab() {
             >
               MANUAL TX
             </Button>
-            <Button 
-              onClick={() => thresholdMutation.mutate()}
-              loading={thresholdMutation.isPending}
-              size="md"
-              color="neon"
-              variant="light"
-            >
-              <IconRocket size={16} style={{ marginRight: 8 }} />
-              CHECK THRESHOLD
-            </Button>
-            <ActionIcon 
-              size="lg"
-              variant="subtle"
-              onClick={() => diagnosticMutation.mutate()}
-              loading={diagnosticMutation.isPending}
-              color="neon"
-            >
-              <IconNetwork size={20} />
-            </ActionIcon>
+            <Tooltip label="Manually trigger a check to see if spare change has reached the threshold for Bitcoin purchase" position="top" withArrow>
+              <Button 
+                onClick={() => thresholdMutation.mutate()}
+                loading={thresholdMutation.isPending}
+                size="md"
+                color="neon"
+                variant="light"
+              >
+                <IconRocket size={16} style={{ marginRight: 8 }} />
+                CHECK THRESHOLD
+              </Button>
+            </Tooltip>
+            <Tooltip label="Show server's outbound IP address (useful for whitelisting in Coinbase)" position="top" withArrow>
+              <ActionIcon 
+                size="lg"
+                variant="subtle"
+                onClick={() => diagnosticMutation.mutate()}
+                loading={diagnosticMutation.isPending}
+                color="neon"
+              >
+                <IconNetwork size={20} />
+              </ActionIcon>
+            </Tooltip>
           </Group>
         </Group>
       </Paper>
@@ -403,8 +505,16 @@ function TransactionTab() {
               <Table.Th>ID</Table.Th>
               <Table.Th>Merchant</Table.Th>
               <Table.Th>Amount</Table.Th>
-              <Table.Th>Spare Change</Table.Th>
-              <Table.Th>Status</Table.Th>
+              <Table.Th>
+                <Tooltip label="The difference between your purchase amount and the next whole dollar. For example, $3.25 → $0.75 spare change" position="top" multiline width={220} withArrow>
+                  <span style={{ cursor: 'help' }}>Spare Change</span>
+                </Tooltip>
+              </Table.Th>
+              <Table.Th>
+                <Tooltip label="NEW: Spare change counted • ROUNDUP_APPLIED: Bitcoin purchased" position="top" multiline width={180} withArrow>
+                  <span style={{ cursor: 'help' }}>Status</span>
+                </Tooltip>
+              </Table.Th>
               <Table.Th>Timestamp</Table.Th>
             </Table.Tr>
           </Table.Thead>

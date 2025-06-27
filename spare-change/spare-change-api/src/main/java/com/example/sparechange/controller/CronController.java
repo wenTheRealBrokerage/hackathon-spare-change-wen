@@ -1,15 +1,15 @@
 package com.example.sparechange.controller;
 
-import com.example.sparechange.service.ThresholdService;
+import com.example.sparechange.service.IThresholdService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/cron")
 public class CronController {
     
-    private final ThresholdService thresholdService;
+    private final IThresholdService thresholdService;
     
-    public CronController(ThresholdService thresholdService) {
+    public CronController(IThresholdService thresholdService) {
         this.thresholdService = thresholdService;
     }
     

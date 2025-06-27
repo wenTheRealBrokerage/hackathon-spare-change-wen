@@ -40,13 +40,13 @@ public class CoinbaseClientIntegrationTest {
     }
     
     @Test
-    public void testBuyUsdcToBtc_SmallAmount() {
+    public void testBuyUsdToCrypto_SmallAmount() {
         System.out.println("Testing small BTC buy order...");
         
         try {
             // Try with minimum amount
             BigDecimal amount = new BigDecimal("1.00");
-            String orderId = coinbaseClient.buyUsdcToBtc(amount);
+            String orderId = coinbaseClient.buyUsdToCrypto(amount, "BTC-USD");
             
             System.out.println("Successfully created order with ID: " + orderId);
             assertNotNull(orderId);

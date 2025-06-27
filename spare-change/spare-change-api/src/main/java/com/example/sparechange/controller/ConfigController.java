@@ -22,8 +22,12 @@ public class ConfigController {
     @Value("${stacker.delay.mas:300000}")
     private Long schedulerDelay;
     
+    @Value("${coinbase.api.product-id:BTC-USD}")
+    private String currentProductId;
+    
     private final Environment environment;
     BigDecimal runtimeThreshold; // package-private for testing
+    String runtimeProductId; // package-private for testing
     
     public ConfigController(Environment environment) {
         this.environment = environment;
@@ -110,9 +114,11 @@ public class ConfigController {
         ));
         
         // Coinbase configuration (without sensitive data)
+        String activeProductId = runtimeProductId != null ? runtimeProductId : currentProductId;
         config.put("coinbase", Map.of(
             "environment", "sandbox",
-            "baseUrl", environment.getProperty("coinbase.api.base-url", "https://api-public.sandbox.exchange.coinbase.com")
+            "baseUrl", environment.getProperty("coinbase.api.base-url", "https://api-public.sandbox.exchange.coinbase.com"),
+            "productId", activeProductId
         ));
         
         return ResponseEntity.ok(config);
@@ -120,5 +126,59 @@ public class ConfigController {
     
     public BigDecimal getActiveThreshold() {
         return runtimeThreshold != null ? runtimeThreshold : currentThreshold;
+    }
+    
+    public String getActiveProductId() {
+        return runtimeProductId != null ? runtimeProductId : currentProductId;
+    }
+    
+    @GetMapping("/product")
+    public ResponseEntity<Map<String, Object>> getProduct() {
+        Map<String, Object> response = new HashMap<>();
+        
+        String activeProductId = runtimeProductId != null ? runtimeProductId : currentProductId;
+        
+        response.put("currentProduct", activeProductId);
+        response.put("availableProducts", Map.of(
+            "BTC-USD", "Bitcoin",
+            "ETH-USD", "Ethereum"
+        ));
+        response.put("description", "Cryptocurrency to purchase with spare change");
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @PutMapping("/product")
+    public ResponseEntity<Map<String, Object>> updateProduct(@RequestBody Map<String, String> request) {
+        String newProductId = request.get("productId");
+        
+        if (newProductId == null || newProductId.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Product ID is required",
+                "example", Map.of("productId", "ETH-USD")
+            ));
+        }
+        
+        // Validate product ID
+        if (!"BTC-USD".equals(newProductId) && !"ETH-USD".equals(newProductId)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Invalid product ID. Must be BTC-USD or ETH-USD",
+                "availableProducts", Map.of(
+                    "BTC-USD", "Bitcoin",
+                    "ETH-USD", "Ethereum"
+                )
+            ));
+        }
+        
+        String previousProductId = runtimeProductId != null ? runtimeProductId : currentProductId;
+        this.runtimeProductId = newProductId;
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("previousProduct", previousProductId);
+        response.put("newProduct", newProductId);
+        response.put("status", "updated");
+        response.put("note", "This change is temporary and will reset on application restart. Update application.yaml for permanent change.");
+        
+        return ResponseEntity.ok(response);
     }
 }

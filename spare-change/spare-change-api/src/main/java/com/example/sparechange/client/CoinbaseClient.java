@@ -57,7 +57,7 @@ public class CoinbaseClient implements ICoinbaseClient {
         this.mockOrderRepository = mockOrderRepository;
     }
     
-    public String buyUsdcToBtc(BigDecimal usd) {
+    public String buyUsdToCrypto(BigDecimal usd, String productId) {
         String timestamp = String.valueOf(Instant.now().getEpochSecond());
         String method = "POST";
         String requestPath = "/orders";
@@ -65,13 +65,13 @@ public class CoinbaseClient implements ICoinbaseClient {
         OrderRequest orderRequest = new OrderRequest();
         orderRequest.setType("market");
         orderRequest.setSide("buy");
-        orderRequest.setProductId("BTC-USD");
+        orderRequest.setProductId(productId);
         orderRequest.setFunds(usd.toString());
         
         String body = convertToJson(orderRequest);
         String signature = generateSignature(timestamp, method, requestPath, body);
         
-        log.info("Attempting to buy BTC with ${}", usd);
+        log.info("Attempting to buy {} with ${}", productId, usd);
         
         try {
             OrderResponse response = webClient.post()
@@ -93,37 +93,47 @@ public class CoinbaseClient implements ICoinbaseClient {
                 return response.getId();
             } else {
                 // Coinbase unreachable or returned null - use demo mode
-                return createDemoOrder(usd);
+                return createDemoOrder(usd, productId);
             }
         } catch (Exception e) {
             log.warn("Coinbase API unavailable, using demo mode: {}", e.getMessage());
-            return createDemoOrder(usd);
+            return createDemoOrder(usd, productId);
         }
     }
     
     @Transactional
-    private String createDemoOrder(BigDecimal usd) {
+    private String createDemoOrder(BigDecimal usd, String productId) {
         String demoOrderId = "DEMO-" + UUID.randomUUID().toString();
-        BigDecimal btcPrice = new BigDecimal("43000"); // Approximate BTC price
-        BigDecimal btcAmount = usd.divide(btcPrice, 8, RoundingMode.HALF_UP);
+        BigDecimal cryptoPrice;
+        String cryptoSymbol;
+        
+        if (productId.startsWith("ETH")) {
+            cryptoPrice = new BigDecimal("2300"); // Approximate ETH price
+            cryptoSymbol = "ETH";
+        } else {
+            cryptoPrice = new BigDecimal("43000"); // Approximate BTC price
+            cryptoSymbol = "BTC";
+        }
+        
+        BigDecimal cryptoAmount = usd.divide(cryptoPrice, 8, RoundingMode.HALF_UP);
         BigDecimal fees = usd.multiply(new BigDecimal("0.01")); // 1% fee
         
         MockOrder mockOrder = new MockOrder();
         mockOrder.setId(demoOrderId);
-        mockOrder.setProductId("BTC-USD");
+        mockOrder.setProductId(productId);
         mockOrder.setSide("buy");
         mockOrder.setType("market");
         mockOrder.setStatus("done");
         mockOrder.setSettled(true);
         mockOrder.setCreatedAt(LocalDateTime.now());
-        mockOrder.setFilledSize(btcAmount);
+        mockOrder.setFilledSize(cryptoAmount);
         mockOrder.setExecutedValue(usd);
         mockOrder.setFillFees(fees);
         
         mockOrderRepository.save(mockOrder);
         
-        log.info("DEMO MODE: Created simulated order {} for ${} (≈ {} BTC)", 
-                demoOrderId, usd, btcAmount);
+        log.info("DEMO MODE: Created simulated order {} for ${} (≈ {} {})", 
+                demoOrderId, usd, cryptoAmount, cryptoSymbol);
         
         demoMode = true;
         return demoOrderId;

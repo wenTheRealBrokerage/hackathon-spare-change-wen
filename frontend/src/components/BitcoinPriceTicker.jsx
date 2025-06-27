@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Card, Group, Text, Badge, Loader } from '@mantine/core'
+import { Card, Group, Text, Badge, Loader, Tooltip } from '@mantine/core'
 import { IconCurrencyBitcoin, IconTrendingUp, IconTrendingDown } from '@tabler/icons-react'
 
 function BitcoinPriceTicker() {
@@ -66,21 +66,22 @@ function BitcoinPriceTicker() {
   const PriceIcon = priceChange === null ? IconCurrencyBitcoin : priceChange > 0 ? IconTrendingUp : IconTrendingDown
 
   return (
-    <Card p="lg" style={cardStyle}>
-      <Group position="apart">
-        <div>
-          <Group spacing="xs" align="center">
-            <IconCurrencyBitcoin size={20} style={{ color: '#F7931A' }} />
-            <Text size="xs" transform="uppercase" weight={500} color="dimmed">
-              Bitcoin Price
+    <Tooltip label="Price updates every 30 seconds from Coinbase API" position="bottom" withArrow>
+      <Card p="lg" style={{ ...cardStyle, cursor: 'help' }}>
+        <Group position="apart">
+          <div>
+            <Group spacing="xs" align="center">
+              <IconCurrencyBitcoin size={20} style={{ color: '#F7931A' }} />
+              <Text size="xs" transform="uppercase" weight={500} color="dimmed">
+                Bitcoin Price
+              </Text>
+            </Group>
+            <Text size="xl" weight={700} style={{ 
+              color: '#F7931A',
+              textShadow: '0 0 10px rgba(247, 147, 26, 0.5)' 
+            }}>
+              ${btcPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </Text>
-          </Group>
-          <Text size="xl" weight={700} style={{ 
-            color: '#F7931A',
-            textShadow: '0 0 10px rgba(247, 147, 26, 0.5)' 
-          }}>
-            ${btcPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </Text>
           {priceChange !== null && (
             <Badge 
               color={priceColor} 
@@ -119,7 +120,8 @@ function BitcoinPriceTicker() {
           }
         }
       `}</style>
-    </Card>
+      </Card>
+    </Tooltip>
   )
 }
 

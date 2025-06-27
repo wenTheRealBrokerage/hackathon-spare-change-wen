@@ -22,6 +22,12 @@ function CryptoOrdersTab() {
     refetchInterval: 3000,
   })
   
+  const { data: productData } = useQuery({
+    queryKey: ['product'],
+    queryFn: api.getProduct,
+    refetchInterval: 10000,
+  })
+  
   // Futuristic card style
   const cardStyle = {
     background: 'linear-gradient(135deg, rgba(14, 196, 255, 0.1) 0%, rgba(106, 27, 255, 0.1) 100%)',
@@ -102,7 +108,7 @@ function CryptoOrdersTab() {
               <Group position="apart">
                 <div>
                   <Text size="xs" transform="uppercase" weight={500} color="dimmed" style={{ letterSpacing: '1px' }}>
-                    Total USD Converted to BTC
+                    Total USD Converted to {productData?.currentProduct === 'ETH-USD' ? 'ETH' : 'BTC'}
                   </Text>
                   <Text size="2.5rem" weight={700} style={{ 
                     textShadow: '0 0 20px rgba(14, 196, 255, 0.8)',
@@ -139,7 +145,7 @@ function CryptoOrdersTab() {
             Round-Up Orders
           </Tabs.Tab>
           <Tabs.Tab value="coinbase" leftSection={<IconCoin style={iconStyle} />}>
-            Coinbase BTC Orders
+            Coinbase {productData?.currentProduct === 'ETH-USD' ? 'ETH' : 'BTC'} Orders
           </Tabs.Tab>
         </Tabs.List>
 

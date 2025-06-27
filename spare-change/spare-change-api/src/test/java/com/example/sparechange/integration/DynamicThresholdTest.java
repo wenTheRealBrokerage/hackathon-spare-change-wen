@@ -5,12 +5,14 @@ import com.example.sparechange.entity.TxStatus;
 import com.example.sparechange.repository.TxRepository;
 import com.example.sparechange.service.ThresholdService;
 import com.example.sparechange.service.TxService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -20,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 public class DynamicThresholdTest {
     
     @Autowired
@@ -33,6 +36,12 @@ public class DynamicThresholdTest {
     
     @Autowired
     private TxRepository txRepository;
+    
+    @BeforeEach
+    public void setup() {
+        // Clean database before each test
+        txRepository.deleteAll();
+    }
     
     @Test
     public void testDynamicThresholdUpdate() throws Exception {
@@ -55,9 +64,17 @@ public class DynamicThresholdTest {
         BigDecimal totalSpare = txService.getTotalSpareChange();
         System.out.println("2. Created transactions with total spare change: $" + totalSpare);
         
-        // Step 3: Check threshold - should not trigger (3.00 < 5.00)
+        // Calculate expected spare change
+        BigDecimal expectedSpare = new BigDecimal("0.99")
+            .add(new BigDecimal("0.98"))
+            .add(new BigDecimal("0.97"))
+            .add(new BigDecimal("0.96"))
+            .add(new BigDecimal("0.10"));
+        System.out.println("Expected spare change: $" + expectedSpare);
+        
+        // Step 3: Check threshold - should not trigger (4.00 < 5.00)
         boolean triggered = thresholdService.checkAndExecute();
-        assertFalse(triggered);
+        assertFalse(triggered, "Expected threshold not to trigger with $" + totalSpare + " < $5.00");
         System.out.println("3. Threshold check: NOT triggered ($" + totalSpare + " < $5.00)");
         
         // Step 4: Lower threshold to $2.00

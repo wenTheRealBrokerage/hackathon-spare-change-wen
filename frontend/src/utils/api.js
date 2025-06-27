@@ -83,7 +83,17 @@ export const api = {
   },
   
   getCoinbaseOrders: async () => {
-    const response = await fetch(`${API_BASE}/roundup/coinbase/orders/btc`)
+    // First get the current product to determine which orders to fetch
+    const productResponse = await fetch(`${API_BASE}/config/product`)
+    if (!productResponse.ok) {
+      throw new Error('Failed to fetch product configuration')
+    }
+    const productData = await productResponse.json()
+    
+    // Extract the currency from product ID (BTC-USD -> btc, ETH-USD -> eth)
+    const currency = productData.currentProduct.split('-')[0].toLowerCase()
+    
+    const response = await fetch(`${API_BASE}/roundup/coinbase/orders/${currency}`)
     
     if (!response.ok) {
       throw new Error('Failed to fetch Coinbase orders')
@@ -123,6 +133,32 @@ export const api = {
     
     if (!response.ok) {
       throw new Error('Failed to fetch diagnostic IP')
+    }
+    
+    return response.json()
+  },
+  
+  getProduct: async () => {
+    const response = await fetch(`${API_BASE}/config/product`)
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch product configuration')
+    }
+    
+    return response.json()
+  },
+  
+  updateProduct: async (productId) => {
+    const response = await fetch(`${API_BASE}/config/product`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ productId }),
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to update product')
     }
     
     return response.json()

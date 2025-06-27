@@ -4,6 +4,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface ICoinbaseClient {
-    String buyUsdcToBtc(BigDecimal usd);
+    String buyUsdToCrypto(BigDecimal usd, String productId);
     List<OrderDto> listOrders();
 }

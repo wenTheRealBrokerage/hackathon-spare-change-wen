@@ -3,7 +3,7 @@ package com.example.sparechange.controller;
 import com.example.sparechange.client.ICoinbaseClient;
 import com.example.sparechange.client.OrderDto;
 import com.example.sparechange.entity.RoundUpSummary;
-import com.example.sparechange.service.ThresholdService;
+import com.example.sparechange.service.IThresholdService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
 @RequestMapping("/roundup")
 public class RoundUpController {
     
-    private final ThresholdService thresholdService;
+    private final IThresholdService thresholdService;
     private final ICoinbaseClient coinbaseClient;
     
-    public RoundUpController(ThresholdService thresholdService, ICoinbaseClient coinbaseClient) {
+    public RoundUpController(IThresholdService thresholdService, ICoinbaseClient coinbaseClient) {
         this.thresholdService = thresholdService;
         this.coinbaseClient = coinbaseClient;
     }
@@ -82,6 +82,20 @@ public class RoundUpController {
         }
     }
     
+    @GetMapping("/coinbase/orders/eth")
+    public ResponseEntity<List<OrderDto>> getCoinbaseEthOrders() {
+        try {
+            List<OrderDto> allOrders = coinbaseClient.listOrders();
+            // Filter for ETH-USD orders only
+            List<OrderDto> ethOrders = allOrders.stream()
+                    .filter(order -> "ETH-USD".equals(order.getProductId()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(ethOrders);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
     @GetMapping("/coinbase/orders/summary")
     public ResponseEntity<Map<String, Object>> getCoinbaseOrdersSummary() {
         try {
@@ -108,6 +122,11 @@ public class RoundUpController {
             Map<String, List<OrderDto>> ordersByStatus = ourCoinbaseOrders.stream()
                     .collect(Collectors.groupingBy(OrderDto::getStatus));
             summary.put("ordersByStatus", ordersByStatus);
+            
+            // Group by product
+            Map<String, List<OrderDto>> ordersByProduct = ourCoinbaseOrders.stream()
+                    .collect(Collectors.groupingBy(OrderDto::getProductId));
+            summary.put("ordersByProduct", ordersByProduct);
             
             return ResponseEntity.ok(summary);
         } catch (Exception e) {

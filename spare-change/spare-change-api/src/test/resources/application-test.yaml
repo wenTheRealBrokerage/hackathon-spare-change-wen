@@ -14,9 +14,10 @@ spring:
 coinbase:
   api:
     buy-threshold: 5.00
-    key: test-key
-    secret: test-secret
-    passphrase: test-passphrase
+    product-id: BTC-USD
+    key: 39c7867bc5b15c6ae4efbbc98be0c4a9
+    secret: 1JTYcMc6PK01Gccqse8/6hhqKa9gXtcsYIfM45XTNsv4O74y/a+ytLv3KTRjwEQRhVJL41+pwRA7qLpPbSuKew==
+    passphrase: 324o0cxud3nj
     
 stacker:
   delay:

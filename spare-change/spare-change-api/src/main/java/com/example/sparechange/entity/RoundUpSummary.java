@@ -20,6 +20,9 @@ public class RoundUpSummary {
     
     private String coinbaseOrderId;
     
+    @Column(name = "product_id", length = 20)
+    private String productId;
+    
     public RoundUpSummary() {}
     
     public RoundUpSummary(Long id, BigDecimal totalUsd, LocalDateTime createdAt, String coinbaseOrderId) {
@@ -59,5 +62,13 @@ public class RoundUpSummary {
     
     public void setCoinbaseOrderId(String coinbaseOrderId) {
         this.coinbaseOrderId = coinbaseOrderId;
+    }
+    
+    public String getProductId() {
+        return productId;
+    }
+    
+    public void setProductId(String productId) {
+        this.productId = productId;
     }
 }

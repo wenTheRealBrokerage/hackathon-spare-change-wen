@@ -23,7 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 @Service
-public class ThresholdService {
+public class ThresholdService implements IThresholdService {
     
     private static final Logger log = LoggerFactory.getLogger(ThresholdService.class);
     
@@ -33,6 +33,9 @@ public class ThresholdService {
     
     @Value("${coinbase.api.buy-threshold:5.00}")
     private BigDecimal buyThreshold;
+    
+    @Value("${coinbase.api.product-id:BTC-USD}")
+    private String productId;
     
     @Autowired
     @Lazy
@@ -78,8 +81,12 @@ public class ThresholdService {
         log.info("Threshold met! Executing Coinbase buy for ${}", totalSpareChange);
         
         try {
-            // Call Coinbase to buy BTC with USDC
-            String orderId = coinbaseClient.buyUsdcToBtc(totalSpareChange);
+            // Get active product ID (either runtime updated or configured)
+            String activeProductId = configController != null && configController.getActiveProductId() != null ? 
+                configController.getActiveProductId() : productId;
+            
+            // Call Coinbase to buy crypto with USD
+            String orderId = coinbaseClient.buyUsdToCrypto(totalSpareChange, activeProductId);
             log.info("Coinbase order created with ID: {}", orderId);
             
             // Create round-up summary record
@@ -87,6 +94,7 @@ public class ThresholdService {
             summary.setTotalUsd(totalSpareChange);
             summary.setCreatedAt(LocalDateTime.now());
             summary.setCoinbaseOrderId(orderId);
+            summary.setProductId(activeProductId);
             roundUpSummaryRepository.save(summary);
             
             // Update all NEW transactions to ROUNDUP_APPLIED

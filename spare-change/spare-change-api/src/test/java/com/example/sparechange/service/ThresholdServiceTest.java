@@ -43,6 +43,7 @@ class ThresholdServiceTest {
     void setUp() {
         thresholdService = new ThresholdService(txRepository, roundUpSummaryRepository, coinbaseClient);
         ReflectionTestUtils.setField(thresholdService, "buyThreshold", new BigDecimal("5.00"));
+        ReflectionTestUtils.setField(thresholdService, "productId", "BTC-USD");
     }
     
     @Test
@@ -55,7 +56,7 @@ class ThresholdServiceTest {
         
         // Then
         assertFalse(result);
-        verify(coinbaseClient, never()).buyUsdcToBtc(any());
+        verify(coinbaseClient, never()).buyUsdToCrypto(any(), any());
         verify(roundUpSummaryRepository, never()).save(any());
     }
     
@@ -72,14 +73,14 @@ class ThresholdServiceTest {
         
         when(txRepository.sumSpareUsdByStatus(TxStatus.NEW)).thenReturn(totalSpare);
         when(txRepository.findByStatus(eq(TxStatus.NEW), any())).thenReturn(page);
-        when(coinbaseClient.buyUsdcToBtc(totalSpare)).thenReturn(orderId);
+        when(coinbaseClient.buyUsdToCrypto(totalSpare, "BTC-USD")).thenReturn(orderId);
         
         // When
         boolean result = thresholdService.checkAndExecute();
         
         // Then
         assertTrue(result);
-        verify(coinbaseClient).buyUsdcToBtc(totalSpare);
+        verify(coinbaseClient).buyUsdToCrypto(totalSpare, "BTC-USD");
         
         // Verify round-up summary saved
         ArgumentCaptor<RoundUpSummary> summaryCaptor = ArgumentCaptor.forClass(RoundUpSummary.class);
@@ -114,14 +115,14 @@ class ThresholdServiceTest {
         
         when(txRepository.sumSpareUsdByStatus(TxStatus.NEW)).thenReturn(totalSpare);
         when(txRepository.findByStatus(eq(TxStatus.NEW), any())).thenReturn(page);
-        when(coinbaseClient.buyUsdcToBtc(totalSpare)).thenReturn(orderId);
+        when(coinbaseClient.buyUsdToCrypto(totalSpare, "BTC-USD")).thenReturn(orderId);
         
         // When
         boolean result = thresholdService.checkAndExecute();
         
         // Then
         assertTrue(result);
-        verify(coinbaseClient).buyUsdcToBtc(totalSpare);
+        verify(coinbaseClient).buyUsdToCrypto(totalSpare, "BTC-USD");
         verify(roundUpSummaryRepository).save(any(RoundUpSummary.class));
         verify(txRepository).saveAll(argThat(list -> ((List<Tx>)list).size() == 3));
     }
@@ -131,7 +132,7 @@ class ThresholdServiceTest {
         // Given
         BigDecimal totalSpare = new BigDecimal("5.00");
         when(txRepository.sumSpareUsdByStatus(TxStatus.NEW)).thenReturn(totalSpare);
-        when(coinbaseClient.buyUsdcToBtc(any())).thenThrow(new RuntimeException("Coinbase API error"));
+        when(coinbaseClient.buyUsdToCrypto(any(), any())).thenThrow(new RuntimeException("Coinbase API error"));
         
         // When & Then
         RuntimeException exception = assertThrows(RuntimeException.class, 
@@ -152,7 +153,7 @@ class ThresholdServiceTest {
         
         // Then
         assertFalse(result);
-        verify(coinbaseClient, never()).buyUsdcToBtc(any());
+        verify(coinbaseClient, never()).buyUsdToCrypto(any(), any());
     }
     
     private Tx createTx(Long id, String spareAmount) {
