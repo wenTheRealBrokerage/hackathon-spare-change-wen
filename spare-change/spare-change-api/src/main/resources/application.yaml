@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: spare-change-api
+  
+  datasource:
+    url: jdbc:h2:mem:sparechangedb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+    
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    
+coinbase:
+  api:
+    base-url: https://api-public.sandbox.exchange.coinbase.com
+    buy-threshold: 5.00
+    key: 338d76f0ed9ebde87d0c5c847aa21508
+    secret: Iw5f0WlsW1eVFqxGYXhBg+J4WsG651Rgj25xbhSxgW7GLI/8FhA3vYpnzhLR1zASEbyGdDtVWTjtjVKYkiLzaQ==
+    passphrase: 66hvzqqxoqi9
+
+stacker:
+  delay:
+    mas: 300000  # 5 minutes in milliseconds
