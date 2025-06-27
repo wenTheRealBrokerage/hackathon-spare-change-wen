@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Spare Change/Round-Up Investment Application that automatically rounds up transactions to the nearest dollar and invests the spare change in Bitcoin via Coinbase when a threshold is reached.
+This is a Spare Change/Round-Up Investment Application that automatically rounds up transactions to the nearest dollar and invests the spare change in cryptocurrency (Bitcoin or Ethereum) via Coinbase when a threshold is reached.
 
 ## Tech Stack
 
@@ -51,9 +51,9 @@ The backend follows a layered architecture pattern:
 4. **Client Layer** (`client/`): External API integration (Coinbase)
 
 Key services:
-- `TransactionService`: Manages transaction creation and spare change calculation
-- `SpareChangeThresholdService`: Monitors accumulated change and triggers Bitcoin purchases
-- `CoinbaseService`: Handles cryptocurrency order execution
+- `TxService`: Manages transaction creation and spare change calculation
+- `ThresholdService`: Monitors accumulated change and triggers cryptocurrency purchases
+- `CoinbaseClient`: Handles cryptocurrency order execution (supports BTC-USD and ETH-USD)
 
 ### Frontend Architecture
 React application with:
@@ -64,15 +64,24 @@ React application with:
 ### Data Flow
 1. User adds transaction via UI
 2. Backend calculates spare change (rounds up to next dollar)
-3. When accumulated change reaches threshold, system automatically creates Bitcoin buy order
+3. When accumulated change reaches threshold, system automatically creates cryptocurrency buy order
 4. Real-time updates sent to frontend via Server-Sent Events (SSE)
+5. Users can switch between BTC-USD and ETH-USD products via configuration endpoint
 
 ### Database Schema
 Managed by Flyway migrations. Main entities:
-- `Tx`: Transaction records with amount, description, status
-- `RoundUpSummary`: Bitcoin purchase orders with crypto amounts
+- `Tx`: Transaction records with amount, description, status, spare change amount
+- `RoundupSummary`: Cryptocurrency purchase orders with crypto amounts and product type
+- `MockOrder`: Simulated orders when Coinbase API is unavailable
 
 Transaction states: NEW → ROUNDUP_APPLIED
+
+### Key Features
+- **Multi-cryptocurrency support**: Switch between BTC-USD and ETH-USD
+- **Automatic fallback**: Uses simulated orders when Coinbase API is unavailable
+- **Dynamic configuration**: Update threshold and product at runtime
+- **Transaction ordering**: NEW transactions appear first, then by date (latest first)
+- **User-friendly responses**: Human-readable messages for threshold checks
 
 ### Configuration
 - Runtime configuration updates via `/api/configuration` endpoint

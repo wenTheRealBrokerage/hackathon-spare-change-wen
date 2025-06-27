@@ -2,12 +2,11 @@ import { useState } from 'react'
 import { Button, Stack, Group, Paper, Text, Badge, Table, ActionIcon, Title, NumberInput, Card, TextInput, Modal, Box, Grid, Progress, Tooltip, Select } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { IconPlus, IconMinus, IconEdit, IconShoppingCart, IconNetwork, IconRocket, IconBolt, IconWallet, IconCurrencyBitcoin, IconCurrencyEthereum } from '@tabler/icons-react'
+import { IconEdit, IconShoppingCart, IconNetwork, IconRocket, IconBolt, IconWallet, IconCurrencyBitcoin, IconCurrencyEthereum } from '@tabler/icons-react'
 import { api } from '../utils/api'
 import { useTransactionStream } from '../hooks/useTransactionStream'
 
 function TransactionTab() {
-  const [pageSize, setPageSize] = useState(5)
   const [editingThreshold, setEditingThreshold] = useState(false)
   const [newThreshold, setNewThreshold] = useState(5)
   const [manualTxModalOpen, setManualTxModalOpen] = useState(false)
@@ -159,8 +158,6 @@ function TransactionTab() {
       })
     },
   })
-
-  const displayedTransactions = transactions.slice(0, pageSize)
   
   // Calculate total spare change for NEW transactions
   const totalSpareChange = transactions
@@ -457,56 +454,51 @@ function TransactionTab() {
       </Paper>
 
       {/* Transactions Table */}
-      <Paper p="xl" radius="md" style={cardStyle}>
+      <Paper 
+        p="xl" 
+        radius="md" 
+        style={{
+          ...cardStyle,
+          maxHeight: 'calc(100vh - 400px)',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         <Group justify="space-between" mb="lg">
           <div>
             <Title order={4}>Transaction History</Title>
             <Text size="sm" c="dimmed" mt="xs">
-              Showing {displayedTransactions.length} of {transactions.length} transactions
+              {transactions.length} transaction{transactions.length !== 1 ? 's' : ''}
             </Text>
           </div>
-          <Group gap="xs">
-            <ActionIcon 
-              variant="light"
-              color="neon"
-              onClick={() => setPageSize(Math.max(1, pageSize - 1))}
-              disabled={pageSize <= 1}
-            >
-              <IconMinus size={16} />
-            </ActionIcon>
-            <Badge size="lg" variant="outline" color="neon">
-              {pageSize} rows
-            </Badge>
-            <ActionIcon 
-              variant="light"
-              color="neon"
-              onClick={() => setPageSize(pageSize + 1)}
-            >
-              <IconPlus size={16} />
-            </ActionIcon>
-          </Group>
         </Group>
 
-        <Table 
-          striped 
-          highlightOnHover
-          styles={{
-            table: {
-              borderCollapse: 'separate',
-              borderSpacing: '0 8px',
-            },
-            thead: {
-              backgroundColor: 'rgba(14, 196, 255, 0.05)',
-            },
-            th: {
-              textTransform: 'uppercase',
-              fontSize: '0.75rem',
-              letterSpacing: '1px',
-              fontWeight: 600,
-              color: '#0EC4FF',
-            },
-          }}
-        >
+        <Box style={{ flex: 1, overflow: 'auto' }}>
+          <Table 
+            striped 
+            highlightOnHover
+            stickyHeader
+            styles={{
+              table: {
+                borderCollapse: 'separate',
+                borderSpacing: '0 8px',
+              },
+              thead: {
+                backgroundColor: 'rgba(14, 196, 255, 0.05)',
+                position: 'sticky',
+                top: 0,
+                zIndex: 10,
+              },
+              th: {
+                textTransform: 'uppercase',
+                fontSize: '0.75rem',
+                letterSpacing: '1px',
+                fontWeight: 600,
+                color: '#0EC4FF',
+                backgroundColor: 'rgba(26, 27, 30, 0.95)',
+              },
+            }}
+          >
           <Table.Thead>
             <Table.Tr>
               <Table.Th>ID</Table.Th>
@@ -526,7 +518,7 @@ function TransactionTab() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {displayedTransactions.map((tx) => (
+            {transactions.map((tx) => (
               <Table.Tr 
                 key={tx.id} 
                 style={{
@@ -572,7 +564,7 @@ function TransactionTab() {
                 </Table.Td>
               </Table.Tr>
             ))}
-            {displayedTransactions.length === 0 && (
+            {transactions.length === 0 && (
               <Table.Tr>
                 <Table.Td colSpan={6} style={{ textAlign: 'center' }}>
                   <Text c="dimmed">No transactions yet</Text>
@@ -580,7 +572,8 @@ function TransactionTab() {
               </Table.Tr>
             )}
           </Table.Tbody>
-        </Table>
+          </Table>
+        </Box>
       </Paper>
       
       <Modal

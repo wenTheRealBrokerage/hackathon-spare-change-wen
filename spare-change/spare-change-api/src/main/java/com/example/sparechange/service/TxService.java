@@ -38,7 +38,7 @@ public class TxService {
     }
     
     public Page<Tx> getTxList(Pageable pageable) {
-        return txRepository.findAll(pageable);
+        return txRepository.findAllOrderedByStatusAndDate(pageable);
     }
     
     public Flux<Tx> streamTx() {

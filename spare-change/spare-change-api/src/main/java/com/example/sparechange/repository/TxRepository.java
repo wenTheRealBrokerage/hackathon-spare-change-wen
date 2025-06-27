@@ -18,4 +18,7 @@ public interface TxRepository extends JpaRepository<Tx, Long> {
     BigDecimal sumSpareUsdByStatus(@Param("status") TxStatus status);
     
     Page<Tx> findByStatus(TxStatus status, Pageable pageable);
+    
+    @Query("SELECT t FROM Tx t ORDER BY CASE WHEN t.status = 'NEW' THEN 0 ELSE 1 END, t.ts DESC")
+    Page<Tx> findAllOrderedByStatusAndDate(Pageable pageable);
 }

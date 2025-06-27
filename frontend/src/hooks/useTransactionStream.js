@@ -50,12 +50,17 @@ export const useTransactionStream = () => {
 
   // Use polled data as the primary source if available, otherwise use stream data
   const transactions = useMemo(() => {
-    if (polledData?.content) {
-      // Return the polled data which has the latest status updates
-      return polledData.content
-    }
-    // If no polled data yet, return stream transactions
-    return streamTransactions
+    const data = polledData?.content || streamTransactions
+    
+    // Sort transactions: NEW status first, then by timestamp (latest first)
+    return [...data].sort((a, b) => {
+      // First, sort by status (NEW comes before ROUNDUP_APPLIED)
+      if (a.status === 'NEW' && b.status !== 'NEW') return -1
+      if (a.status !== 'NEW' && b.status === 'NEW') return 1
+      
+      // Then sort by timestamp (latest first)
+      return new Date(b.ts) - new Date(a.ts)
+    })
   }, [polledData, streamTransactions])
 
   return { transactions, isConnected }
