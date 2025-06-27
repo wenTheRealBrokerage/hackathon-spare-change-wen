@@ -4,6 +4,12 @@ A React 18 application built with Vite, Mantine UI, React Query, and real-time s
 
 ## Features
 
+- **Bitcoin Price Ticker**
+  - Real-time Bitcoin price display in the header
+  - Updates every 30 seconds from CoinDesk API
+  - Shows price changes with trend indicators
+  - Animated Bitcoin logo with futuristic styling
+
 - **Transaction Management**
   - Add random transactions with merchant and amount
   - Manual transaction entry with custom merchant and amount

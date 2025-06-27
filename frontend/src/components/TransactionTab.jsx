@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Button, Stack, Group, Paper, Text, Badge, Table, ActionIcon, Title, NumberInput, Card, TextInput, Modal } from '@mantine/core'
+import { Button, Stack, Group, Paper, Text, Badge, Table, ActionIcon, Title, NumberInput, Card, TextInput, Modal, Box, Grid, Progress } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { IconPlus, IconMinus, IconEdit, IconShoppingCart, IconNetwork } from '@tabler/icons-react'
+import { IconPlus, IconMinus, IconEdit, IconShoppingCart, IconNetwork, IconRocket, IconBolt, IconWallet } from '@tabler/icons-react'
 import { api } from '../utils/api'
 import { useTransactionStream } from '../hooks/useTransactionStream'
 
@@ -14,6 +14,14 @@ function TransactionTab() {
   const [manualTxData, setManualTxData] = useState({ merchant: '', amountUsd: '' })
   const { transactions, isConnected } = useTransactionStream()
   const queryClient = useQueryClient()
+  
+  // Futuristic card style
+  const cardStyle = {
+    background: 'linear-gradient(135deg, rgba(14, 196, 255, 0.1) 0%, rgba(106, 27, 255, 0.1) 100%)',
+    border: '1px solid rgba(14, 196, 255, 0.3)',
+    transition: 'all 0.3s ease',
+    backdropFilter: 'blur(10px)',
+  }
   
   const { data: thresholdData, isLoading: thresholdLoading } = useQuery({
     queryKey: ['threshold'],
@@ -128,123 +136,241 @@ function TransactionTab() {
     .reduce((sum, tx) => sum + (tx.spareUsd || 0), 0)
 
   return (
-    <Stack gap="md">
-      <Group justify="space-between">
-        <Title order={3}>Live Transactions</Title>
-        <Group>
-          <Badge size="lg" variant="filled" color="teal">
-            Total Spare: ${totalSpareChange.toFixed(2)}
-          </Badge>
-          <Badge color={isConnected ? 'green' : 'red'}>
-            {isConnected ? 'Connected' : 'Disconnected'}
-          </Badge>
-        </Group>
-      </Group>
-
-      <Group justify="space-between" align="flex-start">
-        <Group>
-          <Button 
-            onClick={() => addTxMutation.mutate()}
-            loading={addTxMutation.isPending}
+    <>
+      <style>{`
+        @keyframes pulse {
+          0% {
+            box-shadow: 0 0 0 0 rgba(14, 196, 255, 0.7);
+          }
+          70% {
+            box-shadow: 0 0 0 10px rgba(14, 196, 255, 0);
+          }
+          100% {
+            box-shadow: 0 0 0 0 rgba(14, 196, 255, 0);
+          }
+        }
+      `}</style>
+    <Stack gap="xl">
+      {/* Stats Cards */}
+      <Grid>
+        <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <Card 
+            p="lg"
+            style={{
+              background: 'linear-gradient(135deg, rgba(14, 196, 255, 0.1) 0%, rgba(106, 27, 255, 0.1) 100%)',
+              border: '1px solid rgba(14, 196, 255, 0.3)',
+              transition: 'all 0.3s ease',
+            }}
           >
-            Add Random TX
-          </Button>
-          <Button 
-            leftSection={<IconShoppingCart size={16} />}
-            variant="outline"
-            onClick={() => setManualTxModalOpen(true)}
-          >
-            Manual TX
-          </Button>
-          <Button 
-            variant="light" 
-            onClick={() => thresholdMutation.mutate()}
-            loading={thresholdMutation.isPending}
-          >
-            Check spare change
-          </Button>
-          <Button 
-            leftSection={<IconNetwork size={16} />}
-            variant="subtle"
-            onClick={() => diagnosticMutation.mutate()}
-            loading={diagnosticMutation.isPending}
-          >
-            Diagnostic
-          </Button>
-        </Group>
+            <Group position="apart">
+              <div>
+                <Text size="xs" transform="uppercase" weight={500} color="dimmed">
+                  Total Spare Change
+                </Text>
+                <Text size="xl" weight={700} style={{ textShadow: '0 0 10px rgba(14, 196, 255, 0.8)' }}>
+                  ${totalSpareChange.toFixed(2)}
+                </Text>
+              </div>
+              <IconWallet size={32} style={{ color: '#0EC4FF', opacity: 0.8 }} />
+            </Group>
+            <Progress 
+              value={(totalSpareChange / (thresholdData?.currentThreshold || 5)) * 100} 
+              color="neon" 
+              size="xs" 
+              mt="sm"
+              styles={{
+                bar: {
+                  backgroundImage: 'linear-gradient(90deg, #0EC4FF 0%, #6A1BFF 100%)',
+                }
+              }}
+            />
+          </Card>
+        </Grid.Col>
         
-        <Card shadow="sm" padding="sm" radius="md" withBorder>
-          <Group>
-            <div>
-              <Text size="xs" c="dimmed">Buy Threshold</Text>
-              {editingThreshold ? (
-                <Group gap="xs">
-                  <NumberInput
-                    value={newThreshold}
-                    onChange={setNewThreshold}
-                    min={0.01}
-                    max={1000}
-                    step={0.5}
-                    precision={2}
-                    prefix="$"
-                    size="xs"
-                    style={{ width: 100 }}
-                  />
-                  <ActionIcon 
-                    size="sm" 
-                    color="green" 
-                    onClick={() => updateThresholdMutation.mutate(newThreshold)}
-                    loading={updateThresholdMutation.isPending}
-                  >
-                    ✓
-                  </ActionIcon>
-                  <ActionIcon 
-                    size="sm" 
-                    color="red" 
-                    onClick={() => {
+        <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <Card p="lg" style={cardStyle}>
+            <Group position="apart">
+              <div>
+                <Text size="xs" transform="uppercase" weight={500} color="dimmed">
+                  Transactions
+                </Text>
+                <Text size="xl" weight={700}>
+                  {transactions.length}
+                </Text>
+              </div>
+              <IconBolt size={32} style={{ color: '#6A1BFF', opacity: 0.8 }} />
+            </Group>
+          </Card>
+        </Grid.Col>
+        
+        <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <Card p="lg" style={cardStyle}>
+            <Group position="apart">
+              <div>
+                <Text size="xs" transform="uppercase" weight={500} color="dimmed">
+                  Threshold
+                </Text>
+                {editingThreshold ? (
+                  <Group gap="xs">
+                    <NumberInput
+                      value={newThreshold}
+                      onChange={setNewThreshold}
+                      min={0.01}
+                      max={1000}
+                      step={0.5}
+                      precision={2}
+                      prefix="$"
+                      size="xs"
+                      style={{ width: 80 }}
+                    />
+                    <ActionIcon size="sm" color="green" onClick={() => updateThresholdMutation.mutate(newThreshold)}>
+                      ✓
+                    </ActionIcon>
+                    <ActionIcon size="sm" color="red" onClick={() => {
                       setEditingThreshold(false)
                       setNewThreshold(thresholdData?.currentThreshold || 5)
-                    }}
-                  >
-                    ✕
-                  </ActionIcon>
-                </Group>
-              ) : (
-                <Group gap="xs">
-                  <Text fw={600}>${thresholdData?.currentThreshold || '5.00'}</Text>
-                  <ActionIcon 
-                    size="sm" 
-                    variant="subtle" 
-                    onClick={() => {
-                      setEditingThreshold(true)
-                      setNewThreshold(thresholdData?.currentThreshold || 5)
-                    }}
-                  >
-                    <IconEdit size={14} />
-                  </ActionIcon>
-                </Group>
-              )}
-            </div>
-          </Group>
-        </Card>
-      </Group>
+                    }}>
+                      ✕
+                    </ActionIcon>
+                  </Group>
+                ) : (
+                  <Group gap="xs" align="center">
+                    <Text size="xl" weight={700}>
+                      ${thresholdData?.currentThreshold || '5.00'}
+                    </Text>
+                    <ActionIcon 
+                      size="sm" 
+                      variant="subtle"
+                      color="neon"
+                      onClick={() => {
+                        setEditingThreshold(true)
+                        setNewThreshold(thresholdData?.currentThreshold || 5)
+                      }}
+                    >
+                      <IconEdit size={14} />
+                    </ActionIcon>
+                  </Group>
+                )}
+              </div>
+              <IconRocket size={32} style={{ color: '#0EC4FF', opacity: 0.8 }} />
+            </Group>
+          </Card>
+        </Grid.Col>
+        
+        <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+          <Card 
+            p="lg"
+            style={{
+              ...cardStyle,
+              animation: isConnected ? 'pulse 2s infinite' : 'none',
+            }}
+          >
+            <Group position="apart">
+              <div>
+                <Text size="xs" transform="uppercase" weight={500} color="dimmed">
+                  Status
+                </Text>
+                <Badge 
+                  size="lg" 
+                  variant="dot" 
+                  color={isConnected ? 'green' : 'red'}
+                >
+                  {isConnected ? 'LIVE' : 'OFFLINE'}
+                </Badge>
+              </div>
+              <IconNetwork size={32} style={{ color: isConnected ? '#4ADE80' : '#EF4444', opacity: 0.8 }} />
+            </Group>
+          </Card>
+        </Grid.Col>
+      </Grid>
 
-      <Paper shadow="xs" p="md">
-        <Group justify="space-between" mb="sm">
-          <Text size="sm" c="dimmed">
-            Showing {displayedTransactions.length} of {transactions.length} transactions
-          </Text>
+      {/* Action Buttons */}
+      <Paper p="md" radius="md" style={cardStyle}>
+        <Group justify="space-between" align="center">
+          <Title order={4}>Transaction Controls</Title>
+          <Group>
+            <Button 
+              onClick={() => addTxMutation.mutate()}
+              loading={addTxMutation.isPending}
+              size="md"
+              styles={{
+                root: {
+                  background: 'linear-gradient(135deg, rgba(14, 196, 255, 0.2) 0%, rgba(106, 27, 255, 0.2) 100%)',
+                  border: '1px solid rgba(14, 196, 255, 0.5)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 5px 15px rgba(14, 196, 255, 0.4)',
+                  }
+                }
+              }}
+            >
+              <IconBolt size={16} style={{ marginRight: 8 }} />
+              RANDOM TX
+            </Button>
+            <Button 
+              leftSection={<IconShoppingCart size={16} />}
+              onClick={() => setManualTxModalOpen(true)}
+              variant="default"
+              size="md"
+              styles={{
+                root: {
+                  borderColor: 'rgba(106, 27, 255, 0.5)',
+                  '&:hover': {
+                    borderColor: '#6A1BFF',
+                  }
+                }
+              }}
+            >
+              MANUAL TX
+            </Button>
+            <Button 
+              onClick={() => thresholdMutation.mutate()}
+              loading={thresholdMutation.isPending}
+              size="md"
+              color="neon"
+              variant="light"
+            >
+              <IconRocket size={16} style={{ marginRight: 8 }} />
+              CHECK THRESHOLD
+            </Button>
+            <ActionIcon 
+              size="lg"
+              variant="subtle"
+              onClick={() => diagnosticMutation.mutate()}
+              loading={diagnosticMutation.isPending}
+              color="neon"
+            >
+              <IconNetwork size={20} />
+            </ActionIcon>
+          </Group>
+        </Group>
+      </Paper>
+
+      {/* Transactions Table */}
+      <Paper p="xl" radius="md" style={cardStyle}>
+        <Group justify="space-between" mb="lg">
+          <div>
+            <Title order={4}>Transaction History</Title>
+            <Text size="sm" c="dimmed" mt="xs">
+              Showing {displayedTransactions.length} of {transactions.length} transactions
+            </Text>
+          </div>
           <Group gap="xs">
             <ActionIcon 
-              variant="default" 
+              variant="light"
+              color="neon"
               onClick={() => setPageSize(Math.max(1, pageSize - 1))}
               disabled={pageSize <= 1}
             >
               <IconMinus size={16} />
             </ActionIcon>
-            <Text size="sm">{pageSize} rows</Text>
+            <Badge size="lg" variant="outline" color="neon">
+              {pageSize} rows
+            </Badge>
             <ActionIcon 
-              variant="default" 
+              variant="light"
+              color="neon"
               onClick={() => setPageSize(pageSize + 1)}
             >
               <IconPlus size={16} />
@@ -252,7 +378,26 @@ function TransactionTab() {
           </Group>
         </Group>
 
-        <Table striped highlightOnHover>
+        <Table 
+          striped 
+          highlightOnHover
+          styles={{
+            table: {
+              borderCollapse: 'separate',
+              borderSpacing: '0 8px',
+            },
+            thead: {
+              backgroundColor: 'rgba(14, 196, 255, 0.05)',
+            },
+            th: {
+              textTransform: 'uppercase',
+              fontSize: '0.75rem',
+              letterSpacing: '1px',
+              fontWeight: 600,
+              color: '#0EC4FF',
+            },
+          }}
+        >
           <Table.Thead>
             <Table.Tr>
               <Table.Th>ID</Table.Th>
@@ -265,17 +410,49 @@ function TransactionTab() {
           </Table.Thead>
           <Table.Tbody>
             {displayedTransactions.map((tx) => (
-              <Table.Tr key={tx.id}>
-                <Table.Td>{tx.id}</Table.Td>
-                <Table.Td>{tx.merchant}</Table.Td>
-                <Table.Td>${tx.amountUsd.toFixed(2)}</Table.Td>
-                <Table.Td>${tx.spareUsd.toFixed(2)}</Table.Td>
+              <Table.Tr 
+                key={tx.id} 
+                style={{
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer',
+                }}
+              >
                 <Table.Td>
-                  <Badge color={tx.status === 'NEW' ? 'blue' : 'green'}>
+                  <Text style={{ fontFamily: 'JetBrains Mono', fontSize: '0.875rem' }}>
+                    #{tx.id.toString().padStart(4, '0')}
+                  </Text>
+                </Table.Td>
+                <Table.Td>
+                  <Text weight={500}>{tx.merchant}</Text>
+                </Table.Td>
+                <Table.Td>
+                  <Text style={{ fontFamily: 'JetBrains Mono' }}>
+                    ${tx.amountUsd.toFixed(2)}
+                  </Text>
+                </Table.Td>
+                <Table.Td>
+                  <Badge 
+                    variant="light" 
+                    color="cyber"
+                    style={{ fontFamily: 'JetBrains Mono' }}
+                  >
+                    +${tx.spareUsd.toFixed(2)}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>
+                  <Badge 
+                    variant={tx.status === 'NEW' ? 'dot' : 'filled'}
+                    color={tx.status === 'NEW' ? 'neon' : 'green'}
+                    size="lg"
+                  >
                     {tx.status}
                   </Badge>
                 </Table.Td>
-                <Table.Td>{new Date(tx.ts).toLocaleString()}</Table.Td>
+                <Table.Td>
+                  <Text size="sm" c="dimmed" style={{ fontFamily: 'JetBrains Mono' }}>
+                    {new Date(tx.ts).toLocaleString()}
+                  </Text>
+                </Table.Td>
               </Table.Tr>
             ))}
             {displayedTransactions.length === 0 && (
@@ -292,15 +469,40 @@ function TransactionTab() {
       <Modal
         opened={manualTxModalOpen}
         onClose={() => setManualTxModalOpen(false)}
-        title="Add Transaction"
+        title={
+          <Text size="lg" weight={600} transform="uppercase" style={{ letterSpacing: '1px' }}>
+            Manual Transaction Entry
+          </Text>
+        }
+        size="md"
+        centered
+        styles={{
+          content: {
+            backgroundColor: 'rgba(26, 27, 30, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(14, 196, 255, 0.3)',
+          },
+          header: {
+            backgroundColor: 'transparent',
+            borderBottom: '1px solid rgba(14, 196, 255, 0.2)',
+          },
+        }}
       >
-        <Stack>
+        <Stack gap="lg" mt="md">
           <TextInput
             label="Merchant"
             placeholder="e.g., Starbucks"
             value={manualTxData.merchant}
             onChange={(e) => setManualTxData({ ...manualTxData, merchant: e.target.value })}
             required
+            styles={{
+              label: {
+                textTransform: 'uppercase',
+                fontSize: '0.75rem',
+                letterSpacing: '0.5px',
+                color: '#0EC4FF',
+              },
+            }}
           />
           <NumberInput
             label="Amount (USD)"
@@ -311,10 +513,22 @@ function TransactionTab() {
             precision={2}
             prefix="$"
             required
+            styles={{
+              label: {
+                textTransform: 'uppercase',
+                fontSize: '0.75rem',
+                letterSpacing: '0.5px',
+                color: '#0EC4FF',
+              },
+            }}
           />
-          <Group justify="flex-end" mt="md">
-            <Button variant="default" onClick={() => setManualTxModalOpen(false)}>
-              Cancel
+          <Group justify="flex-end" mt="xl">
+            <Button 
+              variant="subtle" 
+              onClick={() => setManualTxModalOpen(false)}
+              color="gray"
+            >
+              CANCEL
             </Button>
             <Button
               onClick={() => {
@@ -324,13 +538,23 @@ function TransactionTab() {
               }}
               loading={addManualTxMutation.isPending}
               disabled={!manualTxData.merchant || !manualTxData.amountUsd}
+              color="neon"
+              variant="light"
+              styles={{
+                root: {
+                  background: 'linear-gradient(135deg, rgba(14, 196, 255, 0.2) 0%, rgba(106, 27, 255, 0.2) 100%)',
+                  border: '1px solid rgba(14, 196, 255, 0.5)',
+                }
+              }}
             >
-              Add Transaction
+              <IconRocket size={16} style={{ marginRight: 8 }} />
+              SUBMIT TRANSACTION
             </Button>
           </Group>
         </Stack>
       </Modal>
     </Stack>
+    </>
   )
 }
 
