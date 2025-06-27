@@ -77,16 +77,30 @@ Managed by Flyway migrations. Main entities:
 Transaction states: NEW → ROUNDUP_APPLIED
 
 ### Key Features
-- **Multi-cryptocurrency support**: Switch between BTC-USD and ETH-USD
+- **Multi-cryptocurrency support**: Switch between BTC-USD and ETH-USD dynamically
 - **Automatic fallback**: Uses simulated orders when Coinbase API is unavailable
 - **Dynamic configuration**: Update threshold and product at runtime
 - **Transaction ordering**: NEW transactions appear first, then by date (latest first)
 - **User-friendly responses**: Human-readable messages for threshold checks
+- **Bitcoin price ticker**: Real-time BTC price updates from Coinbase API (30s refresh)
+- **Futuristic UI**: Dark theme with neon accents and animated components
+- **Responsive tables**: Auto-sizing transaction list with sticky headers
+- **Helpful tooltips**: Context-sensitive help throughout the interface
+
+### Frontend Features
+- **Transaction Management**: Add random or manual transactions
+- **Live Updates**: SSE streaming + 2s polling for status changes
+- **Cryptocurrency Selector**: Switch between BTC/ETH with visual feedback
+- **Threshold Editor**: In-place editing with validation
+- **Diagnostic Tools**: IP address display for Coinbase whitelisting
+- **Progress Tracking**: Visual progress bar toward threshold
+- **Order History**: View round-up orders and Coinbase transactions
 
 ### Configuration
-- Runtime configuration updates via `/api/configuration` endpoint
+- Runtime configuration updates via `/config` endpoints
 - Environment variables for Coinbase API credentials (see COINBASE_SETUP.md)
 - Application properties in `application.yaml`
+- Cryptocurrency product selection: `/config/product` (BTC-USD/ETH-USD)
 
 ## Testing Strategy
 
