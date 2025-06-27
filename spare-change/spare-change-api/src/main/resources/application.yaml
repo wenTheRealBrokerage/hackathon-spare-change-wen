@@ -35,3 +35,8 @@ coinbase:
 stacker:
   delay:
     mas: 300000  # 5 minutes in milliseconds
+    
+logging:
+  level:
+    com.example.sparechange.client: DEBUG
+    org.springframework.web.reactive.function.client: DEBUG

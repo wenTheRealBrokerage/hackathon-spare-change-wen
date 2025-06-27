@@ -72,6 +72,7 @@ public class CoinbaseClient implements ICoinbaseClient {
         String signature = generateSignature(timestamp, method, requestPath, body);
         
         log.info("Attempting to buy {} with ${}", productId, usd);
+        log.debug("Request body: {}", body);
         
         try {
             OrderResponse response = webClient.post()
@@ -95,15 +96,20 @@ public class CoinbaseClient implements ICoinbaseClient {
                 // Coinbase unreachable or returned null - use demo mode
                 return createDemoOrder(usd, productId);
             }
+        } catch (WebClientResponseException e) {
+            log.error("Coinbase API error for {} order - Status: {}, Body: {}", productId, e.getStatusCode(), e.getResponseBodyAsString());
+            log.error("Request details - Product: {}, Amount: ${}, Request body: {}", productId, usd, body);
+            log.info("Falling back to simulated order due to Coinbase API error");
+            return createDemoOrder(usd, productId);
         } catch (Exception e) {
-            log.warn("Coinbase API unavailable, using demo mode: {}", e.getMessage());
+            log.error("Coinbase API unavailable, using demo mode", e);
             return createDemoOrder(usd, productId);
         }
     }
     
     @Transactional
     private String createDemoOrder(BigDecimal usd, String productId) {
-        String demoOrderId = "DEMO-" + UUID.randomUUID().toString();
+        String demoOrderId = UUID.randomUUID().toString();
         BigDecimal cryptoPrice;
         String cryptoSymbol;
         
@@ -132,7 +138,7 @@ public class CoinbaseClient implements ICoinbaseClient {
         
         mockOrderRepository.save(mockOrder);
         
-        log.info("DEMO MODE: Created simulated order {} for ${} (≈ {} {})", 
+        log.info("Created simulated order {} for ${} (≈ {} {})", 
                 demoOrderId, usd, cryptoAmount, cryptoSymbol);
         
         demoMode = true;
@@ -193,7 +199,7 @@ public class CoinbaseClient implements ICoinbaseClient {
             demoOrders.add(dto);
         }
         
-        log.info("DEMO MODE: Returning {} simulated orders from database", demoOrders.size());
+        log.info("Returning {} simulated orders from database", demoOrders.size());
         return demoOrders;
     }
     

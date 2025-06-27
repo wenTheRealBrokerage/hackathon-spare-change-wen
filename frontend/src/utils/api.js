@@ -49,7 +49,20 @@ export const api = {
       throw new Error('Failed to check threshold')
     }
     
-    return response.text()
+    // Check if response is JSON or plain text
+    const contentType = response.headers.get('content-type')
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json()
+      // Convert JSON response to user-friendly message
+      if (data.executed === false) {
+        return `Threshold not met yet. Keep adding transactions to accumulate more spare change!`
+      } else if (data.executed === true) {
+        return `Success! Your spare change has been invested in cryptocurrency.`
+      }
+      return data.message || 'Threshold check completed'
+    } else {
+      return response.text()
+    }
   },
 
   getRoundupOrders: async () => {

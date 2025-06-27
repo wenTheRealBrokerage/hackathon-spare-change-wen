@@ -28,9 +28,7 @@ class CronControllerTest {
         // When & Then
         mockMvc.perform(post("/cron/threshold"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.executed").value(true))
-                .andExpect(jsonPath("$.message").value("Round-up executed successfully"))
-                .andExpect(jsonPath("$.timestamp").exists());
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("✅ Success! Spare change round-up executed")));
     }
     
     @Test
@@ -41,8 +39,6 @@ class CronControllerTest {
         // When & Then
         mockMvc.perform(post("/cron/threshold"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.executed").value(false))
-                .andExpect(jsonPath("$.message").value("Threshold not met"))
-                .andExpect(jsonPath("$.timestamp").exists());
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("ℹ️ Threshold not met")));
     }
 }

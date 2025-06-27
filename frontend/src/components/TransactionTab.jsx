@@ -76,14 +76,21 @@ function TransactionTab() {
   const thresholdMutation = useMutation({
     mutationFn: api.updateThreshold,
     onSuccess: (data) => {
+      const isSuccess = data.includes('Success')
+      const remaining = thresholdData?.currentThreshold - totalSpareChange
+      
       notifications.show({
-        title: 'Spare Change Check',
-        message: data,
-        color: 'blue',
+        title: isSuccess ? '🎉 Purchase Executed!' : 'Threshold Check',
+        message: isSuccess ? data : `${data} You need $${remaining.toFixed(2)} more to reach your $${thresholdData?.currentThreshold} threshold.`,
+        color: isSuccess ? 'green' : 'blue',
+        autoClose: isSuccess ? 10000 : 5000,
       })
       // Invalidate the transactions query to force a refresh
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['transactions'] })
+        if (isSuccess) {
+          queryClient.invalidateQueries({ queryKey: ['roundupOrders'] })
+        }
       }, 1000)
     },
     onError: () => {

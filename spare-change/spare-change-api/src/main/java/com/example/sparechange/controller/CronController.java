@@ -2,6 +2,10 @@ package com.example.sparechange.controller;
 
 import com.example.sparechange.service.IThresholdService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/cron")
@@ -14,29 +18,23 @@ public class CronController {
     }
     
     @PostMapping("/threshold")
-    public ThresholdCheckResponse triggerThresholdCheck() {
+    public ResponseEntity<String> triggerThresholdCheck() {
         boolean executed = thresholdService.checkAndExecute();
         
-        ThresholdCheckResponse response = new ThresholdCheckResponse();
-        response.setExecuted(executed);
-        response.setMessage(executed ? "Round-up executed successfully" : "Threshold not met");
-        response.setTimestamp(System.currentTimeMillis());
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         
-        return response;
-    }
-    
-    static class ThresholdCheckResponse {
-        private boolean executed;
-        private String message;
-        private long timestamp;
-        
-        public boolean isExecuted() { return executed; }
-        public void setExecuted(boolean executed) { this.executed = executed; }
-        
-        public String getMessage() { return message; }
-        public void setMessage(String message) { this.message = message; }
-        
-        public long getTimestamp() { return timestamp; }
-        public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+        if (executed) {
+            return ResponseEntity.ok(String.format(
+                "✅ Success! Spare change round-up executed at %s\n" +
+                "Your spare change has been invested in cryptocurrency.",
+                timestamp
+            ));
+        } else {
+            return ResponseEntity.ok(String.format(
+                "ℹ️ Threshold not met at %s\n" +
+                "Keep adding transactions to accumulate more spare change!",
+                timestamp
+            ));
+        }
     }
 }
