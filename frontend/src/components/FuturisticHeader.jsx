@@ -1,6 +1,6 @@
-import { Title, Text, Box, Group, Container } from '@mantine/core'
+import { Title, Text, Box, Group, Container, Stack } from '@mantine/core'
 import { IconCurrencyBitcoin } from '@tabler/icons-react'
-import BitcoinPriceTicker from './BitcoinPriceTicker'
+import CryptoPriceTicker from './CryptoPriceTicker'
 
 function FuturisticHeader() {
   return (
@@ -58,12 +58,15 @@ function FuturisticHeader() {
                   fontWeight: 500,
                 }}
               >
-                Automated Bitcoin Investment Platform
+                Automated Cryptocurrency Investment Platform
               </Text>
             </div>
           </Group>
           
-          <BitcoinPriceTicker />
+          <Group gap="md">
+            <CryptoPriceTicker currency="BTC" />
+            <CryptoPriceTicker currency="ETH" />
+          </Group>
         </Group>
       </Container>
       
