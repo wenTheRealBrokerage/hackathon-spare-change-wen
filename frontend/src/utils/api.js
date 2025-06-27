@@ -117,4 +117,14 @@ export const api = {
     
     return response.json()
   },
+  
+  getDiagnosticIp: async () => {
+    const response = await fetch(`${API_BASE}/api/diagnostic/ip`)
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch diagnostic IP')
+    }
+    
+    return response.json()
+  },
 }

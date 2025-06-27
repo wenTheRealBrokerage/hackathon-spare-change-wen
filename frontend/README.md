@@ -21,6 +21,11 @@ A React 18 application built with Vite, Mantine UI, React Query, and real-time s
   - Toast notifications for all actions
   - Note: Threshold changes are temporary and reset on backend restart
 
+- **Diagnostic Tools**
+  - "Diagnostic" button - Shows server's outbound IP address
+  - Useful for whitelisting the server IP in Coinbase or other services
+  - Displays IP and reminder message in a notification
+
 - **Crypto Orders**
   - Displays round-up orders from Coinbase
   - Shows total orders count and total USD converted
@@ -48,6 +53,7 @@ This frontend connects to the Spring Boot backend running on `http://localhost:8
 - `GET /roundup/orders/all` - Get all round-up orders
 - `GET /roundup/summary` - Get round-up summary statistics
 - `GET /roundup/coinbase/orders/btc` - Get Coinbase BTC orders
+- `GET /api/diagnostic/ip` - Get server's outbound IP address
 
 ## Getting Started
 

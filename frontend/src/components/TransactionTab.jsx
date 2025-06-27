@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button, Stack, Group, Paper, Text, Badge, Table, ActionIcon, Title, NumberInput, Card, TextInput, Modal } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { IconPlus, IconMinus, IconEdit, IconShoppingCart } from '@tabler/icons-react'
+import { IconPlus, IconMinus, IconEdit, IconShoppingCart, IconNetwork } from '@tabler/icons-react'
 import { api } from '../utils/api'
 import { useTransactionStream } from '../hooks/useTransactionStream'
 
@@ -100,6 +100,25 @@ function TransactionTab() {
       })
     },
   })
+  
+  const diagnosticMutation = useMutation({
+    mutationFn: api.getDiagnosticIp,
+    onSuccess: (data) => {
+      notifications.show({
+        title: 'Server Outbound IP',
+        message: `${data.outboundIp} - ${data.message}`,
+        color: 'blue',
+        autoClose: 10000, // Keep notification visible longer
+      })
+    },
+    onError: () => {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to get diagnostic information',
+        color: 'red',
+      })
+    },
+  })
 
   const displayedTransactions = transactions.slice(0, pageSize)
   
@@ -143,6 +162,14 @@ function TransactionTab() {
             loading={thresholdMutation.isPending}
           >
             Check spare change
+          </Button>
+          <Button 
+            leftSection={<IconNetwork size={16} />}
+            variant="subtle"
+            onClick={() => diagnosticMutation.mutate()}
+            loading={diagnosticMutation.isPending}
+          >
+            Diagnostic
           </Button>
         </Group>
         
