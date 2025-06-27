@@ -6,6 +6,7 @@ A React 18 application built with Vite, Mantine UI, React Query, and real-time s
 
 - **Transaction Management**
   - Add random transactions with merchant and amount
+  - Manual transaction entry with custom merchant and amount
   - Live transaction list with Server-Sent Events (SSE)
   - Displays transaction amount, spare change, and status
   - Shows total accumulated spare change for NEW transactions

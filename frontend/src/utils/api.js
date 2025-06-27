@@ -1,4 +1,4 @@
-const API_BASE = '/api'
+const API_BASE = ''
 
 export const api = {
   addRandomTx: async () => {
@@ -12,6 +12,22 @@ export const api = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ merchant, amountUsd }),
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to add transaction')
+    }
+    
+    return response.json()
+  },
+  
+  addTransaction: async ({ merchant, amountUsd }) => {
+    const response = await fetch(`${API_BASE}/tx`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ merchant, amountUsd: parseFloat(amountUsd) }),
     })
     
     if (!response.ok) {

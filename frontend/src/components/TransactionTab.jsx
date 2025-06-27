@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Button, Stack, Group, Paper, Text, Badge, Table, ActionIcon, Title, NumberInput, Card } from '@mantine/core'
+import { Button, Stack, Group, Paper, Text, Badge, Table, ActionIcon, Title, NumberInput, Card, TextInput, Modal } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { IconPlus, IconMinus, IconEdit } from '@tabler/icons-react'
+import { IconPlus, IconMinus, IconEdit, IconShoppingCart } from '@tabler/icons-react'
 import { api } from '../utils/api'
 import { useTransactionStream } from '../hooks/useTransactionStream'
 
@@ -10,6 +10,8 @@ function TransactionTab() {
   const [pageSize, setPageSize] = useState(5)
   const [editingThreshold, setEditingThreshold] = useState(false)
   const [newThreshold, setNewThreshold] = useState(5)
+  const [manualTxModalOpen, setManualTxModalOpen] = useState(false)
+  const [manualTxData, setManualTxData] = useState({ merchant: '', amountUsd: '' })
   const { transactions, isConnected } = useTransactionStream()
   const queryClient = useQueryClient()
   
@@ -27,6 +29,26 @@ function TransactionTab() {
         message: 'Random transaction added',
         color: 'green',
       })
+    },
+    onError: () => {
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to add transaction',
+        color: 'red',
+      })
+    },
+  })
+  
+  const addManualTxMutation = useMutation({
+    mutationFn: api.addTransaction,
+    onSuccess: () => {
+      notifications.show({
+        title: 'Success',
+        message: 'Transaction added successfully',
+        color: 'green',
+      })
+      setManualTxModalOpen(false)
+      setManualTxData({ merchant: '', amountUsd: '' })
     },
     onError: () => {
       notifications.show({
@@ -107,6 +129,13 @@ function TransactionTab() {
             loading={addTxMutation.isPending}
           >
             Add Random TX
+          </Button>
+          <Button 
+            leftSection={<IconShoppingCart size={16} />}
+            variant="outline"
+            onClick={() => setManualTxModalOpen(true)}
+          >
+            Manual TX
           </Button>
           <Button 
             variant="light" 
@@ -232,6 +261,48 @@ function TransactionTab() {
           </Table.Tbody>
         </Table>
       </Paper>
+      
+      <Modal
+        opened={manualTxModalOpen}
+        onClose={() => setManualTxModalOpen(false)}
+        title="Add Transaction"
+      >
+        <Stack>
+          <TextInput
+            label="Merchant"
+            placeholder="e.g., Starbucks"
+            value={manualTxData.merchant}
+            onChange={(e) => setManualTxData({ ...manualTxData, merchant: e.target.value })}
+            required
+          />
+          <NumberInput
+            label="Amount (USD)"
+            placeholder="e.g., 12.50"
+            value={manualTxData.amountUsd}
+            onChange={(value) => setManualTxData({ ...manualTxData, amountUsd: value })}
+            min={0.01}
+            precision={2}
+            prefix="$"
+            required
+          />
+          <Group justify="flex-end" mt="md">
+            <Button variant="default" onClick={() => setManualTxModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (manualTxData.merchant && manualTxData.amountUsd) {
+                  addManualTxMutation.mutate(manualTxData)
+                }
+              }}
+              loading={addManualTxMutation.isPending}
+              disabled={!manualTxData.merchant || !manualTxData.amountUsd}
+            >
+              Add Transaction
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </Stack>
   )
 }
