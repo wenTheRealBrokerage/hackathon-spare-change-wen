@@ -130,19 +130,34 @@ cd frontend
 npm run test
 ```
 
-## 📸 Screenshots
+## 🎮 Quick Demo
 
-### Dashboard
-- Real-time Bitcoin price ticker
-- Transaction list with spare change tracking
-- Progress bar showing accumulation toward threshold
-- Round-up order history
+Want to see Spare Change in action? Follow these simple steps:
 
-### Features in Action
-- Add random or manual transactions
-- Watch spare change accumulate in real-time
-- Automatic cryptocurrency purchases at threshold
-- Switch between Bitcoin and Ethereum investments
+1. **Start the application** (see Quick Start above)
+2. **Click "Random Transaction"** multiple times to add sample transactions
+   - Each transaction will be rounded up to the nearest dollar
+   - Watch the spare change accumulate in the transaction list
+3. **Monitor the progress bar** as it fills toward your threshold (default: $5.00)
+4. **Once threshold is reached**, click the **"Check Threshold"** button
+5. **Check the "Orders" tab** to see your automatic cryptocurrency purchase!
+
+The system will automatically create a buy order for Bitcoin or Ethereum (depending on your selection) using the accumulated spare change.
+
+## 📸 Features Overview
+
+### Dashboard Components
+- **Real-time Bitcoin price ticker** - Updates every 30 seconds from Coinbase
+- **Transaction list** - Shows all transactions with calculated spare change
+- **Progress bar** - Visual indicator of accumulation toward threshold
+- **Threshold editor** - Click to edit investment threshold in-place
+- **Cryptocurrency selector** - Toggle between BTC and ETH investments
+- **Check Threshold button** - Manually trigger investment check
+
+### Order Management
+- **Orders tab** - View all round-up investment orders
+- **Order details** - Shows crypto amount, USD value, and Coinbase order ID
+- **Transaction status** - Real-time updates via Server-Sent Events
 
 ## 🤝 Contributing
 
